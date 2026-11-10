@@ -31,6 +31,16 @@
           <div class="top-actions"><span class="clock">◷ 14:32</span><button class="outline-button" id="open-staff">Staff view</button><button class="primary-button" id="add-top">＋ Add to waitlist</button></div>
         </header>
 
+        <section class="staff-login card hidden" id="staff-login">
+          <div class="section-title"><div><p class="eyebrow">RESTAURANT OPERATIONS</p><h2>Staff sign in</h2></div></div>
+          <form id="staff-login-form" class="join-form">
+            <label>Username<input id="staff-username" autocomplete="username" required /></label>
+            <label>Password<input id="staff-password" type="password" autocomplete="current-password" required /></label>
+            <button type="submit" class="primary-button">Sign in <span>→</span></button>
+          </form>
+          <p id="staff-login-error" class="error" role="alert"></p>
+        </section>
+
         <section class="guest-panel card" id="guest-panel">
           <div class="section-title"><div><p class="eyebrow">GUEST CHECK-IN</p><h1>Join the waitlist</h1></div><button class="close-button" id="close-guest">×</button></div>
           <form id="join-form" class="join-form">
@@ -38,6 +48,11 @@
             <label>Party size<select id="party-size"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
             <button type="submit" class="primary-button">Add guest <span>→</span></button>
           </form>
+          <div class="voice-tools">
+            <button type="button" class="outline-button" id="voice-record">🎙 Speak details</button>
+            <button type="button" class="outline-button" id="voice-status">🔊 Hear my status</button>
+            <span id="voice-label">Voice ready</span>
+          </div>
           <p id="join-error" class="error" role="alert"></p>
         </section>
 
@@ -70,6 +85,8 @@
             <div class="floor-plan">
               <div class="entrance">ENTRANCE</div><div class="bar">BAR</div><div class="table-shape t1" data-table="table-2">2</div><div class="table-shape t2" data-table="table-4">4</div><div class="table-shape t3" data-table="table-6">6</div><div class="table-shape t4" data-table="table-2b">2</div><div class="table-shape t5" data-table="table-4b">4</div><div class="table-shape t6" data-table="table-6b">2</div><div class="table-shape t7" data-table="table-6c">6</div><div class="table-shape t8" data-table="table-4c">4</div>
             </div>
+            <div class="staff-tools hidden" id="staff-tools"><strong>Staff controls</strong><p>Free a table after guests leave:</p><div id="table-actions"></div><button id="staff-logout" class="outline-button">Sign out</button></div>
+            <button type="button" class="outline-button hidden" id="staff-announce">🔊 Announce queue</button>
           </article>
         </section>
 

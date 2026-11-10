@@ -71,6 +71,7 @@ export class PostgresEventStore {
     } finally {
       client.release();
     }
+  }
 
     async getRestaurantConfig(restaurantId: string): Promise<PersistedRestaurantConfig | undefined> {
       const result = await this.pool.query<{ name: string; config: PersistedRestaurantConfig }>(
@@ -112,7 +113,6 @@ export class PostgresEventStore {
         [restaurantId, operationKey, response]
       );
     }
-  }
 
   private async ensureRestaurant(client: PoolClient, restaurantId: string): Promise<void> {
     await client.query(

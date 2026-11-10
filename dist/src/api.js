@@ -131,7 +131,9 @@ export function createApp(repository = new InMemoryQueueRepository(), gnani = ne
             '/restaurants/{restaurantId}/tokens/{tokenId}': { get: { summary: 'Get token status' }, delete: { summary: 'Cancel token' } },
             '/restaurants/{restaurantId}/tokens/{tokenId}/check-in': { post: { summary: 'Check in a guest' } },
             '/restaurants/{restaurantId}/tables/{tableId}/free': { post: { summary: 'Free a table' } },
-            '/restaurants/{restaurantId}/events': { get: { summary: 'Subscribe to realtime queue updates' } }
+            '/restaurants/{restaurantId}/events': { get: { summary: 'Subscribe to realtime queue updates' } },
+            '/auth/staff/login': { post: { summary: 'Create a staff session' } },
+            '/auth/staff/logout': { post: { summary: 'End a staff session' } }
         }
     }));
     app.post('/auth/staff/login', async (request, reply) => {
@@ -308,6 +310,8 @@ export function createApp(repository = new InMemoryQueueRepository(), gnani = ne
                 : 15
         };
         restaurants.set(id, config);
+        if (repository.saveRestaurantConfig)
+            await repository.saveRestaurantConfig(id, config);
         return reply.code(201).send({ id, ...config });
     });
     app.post('/restaurants/:restaurantId/config', async (request, reply) => {
@@ -538,5 +542,6 @@ function isStaffAuthenticated(cookie, apiKey, username, sessionSecret) {
     if (!sessionUser || !signature || sessionUser !== username || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
         return false;
     }
-    return signSession(sessionUser, expiresAt, sessionSecret).endsWith(`.${signature}`);
+    const expectedSignature = signSession(sessionUser, expiresAt, sessionSecret).split('.').pop();
+    return expectedSignature !== undefined && safeSecretEqual(signature, expectedSignature);
 }

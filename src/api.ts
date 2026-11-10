@@ -35,7 +35,7 @@ interface QueueRepository {
   close?: () => void | Promise<void>;
   getIdempotency?(restaurantId: string, operationKey: string): unknown | Promise<unknown | undefined>;
   saveIdempotency?(restaurantId: string, operationKey: string, response: unknown): void | Promise<void>;
-  getRestaurantConfig?(restaurantId: string): PersistedRestaurantConfig | Promise<PersistedRestaurantConfig | undefined>;
+  getRestaurantConfig?(restaurantId: string): PersistedRestaurantConfig | undefined | Promise<PersistedRestaurantConfig | undefined>;
   saveRestaurantConfig?(restaurantId: string, config: PersistedRestaurantConfig): void | Promise<void>;
 }
 
@@ -181,7 +181,9 @@ export function createApp(
       '/restaurants/{restaurantId}/tokens/{tokenId}': { get: { summary: 'Get token status' }, delete: { summary: 'Cancel token' } },
       '/restaurants/{restaurantId}/tokens/{tokenId}/check-in': { post: { summary: 'Check in a guest' } },
       '/restaurants/{restaurantId}/tables/{tableId}/free': { post: { summary: 'Free a table' } },
-      '/restaurants/{restaurantId}/events': { get: { summary: 'Subscribe to realtime queue updates' } }
+      '/restaurants/{restaurantId}/events': { get: { summary: 'Subscribe to realtime queue updates' } },
+      '/auth/staff/login': { post: { summary: 'Create a staff session' } },
+      '/auth/staff/logout': { post: { summary: 'End a staff session' } }
     }
   }));
   app.post<{ Body: { username?: string; password?: string } }>(
@@ -383,6 +385,7 @@ export function createApp(
           : 15
       };
       restaurants.set(id, config);
+      if (repository.saveRestaurantConfig) await repository.saveRestaurantConfig(id, config);
       return reply.code(201).send({ id, ...config });
     }
   );
@@ -682,5 +685,6 @@ function isStaffAuthenticated(
   if (!sessionUser || !signature || sessionUser !== username || !Number.isFinite(expiresAt) || expiresAt <= Date.now()) {
     return false;
   }
-  return signSession(sessionUser, expiresAt, sessionSecret).endsWith(`.${signature}`);
+  const expectedSignature = signSession(sessionUser, expiresAt, sessionSecret).split('.').pop();
+  return expectedSignature !== undefined && safeSecretEqual(signature, expectedSignature);
 }

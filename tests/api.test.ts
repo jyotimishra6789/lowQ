@@ -117,6 +117,7 @@ describe('queue API', () => {
       url: '/restaurants/r1/tokens',
       payload: { phone: '+91 99999 55555', partySize: 2 }
     });
+
     const tokenId = created.json().token.id;
     await app.inject({ method: 'POST', url: `/restaurants/r1/tokens/${tokenId}/check-in` });
     const ready = await app.inject({ method: 'POST', url: `/restaurants/r1/tokens/${tokenId}/ready` });
@@ -124,6 +125,72 @@ describe('queue API', () => {
     const summary = await app.inject({ method: 'GET', url: '/restaurants/r1/summary' });
     expect(summary.statusCode).toBe(200);
     expect(summary.json().waiting).toBe(1);
+  });
+
+  it('replays a lifecycle mutation from its idempotency key', async () => {
+    app = createApp();
+    const created = await app.inject({
+      method: 'POST',
+      url: '/restaurants/r1/tokens',
+      payload: { phone: '+91 99999 66666', partySize: 2 }
+    });
+    const tokenId = created.json().token.id;
+    const headers = { 'idempotency-key': 'arrival-1' };
+    const first = await app.inject({
+      method: 'POST',
+      url: `/restaurants/r1/tokens/${tokenId}/on-my-way`,
+      headers
+    });
+    const second = await app.inject({
+      method: 'POST',
+      url: `/restaurants/r1/tokens/${tokenId}/on-my-way`,
+      headers
+    });
+    expect(first.statusCode).toBe(200);
+    expect(second.statusCode).toBe(200);
+    expect(second.json()).toEqual(first.json());
+  });
+
+  it('authenticates staff with a signed session cookie', async () => {
+    const previous = {
+      username: process.env.STAFF_USERNAME,
+      password: process.env.STAFF_PASSWORD,
+      secret: process.env.STAFF_SESSION_SECRET
+    };
+    process.env.STAFF_USERNAME = 'manager';
+    process.env.STAFF_PASSWORD = 'correct horse battery staple';
+    process.env.STAFF_SESSION_SECRET = 'test-session-secret';
+    try {
+      app = createApp(new InMemoryQueueRepository([
+        { id: 'table-2', capacity: 2, status: 'FREE' }
+      ]));
+      const unauthorized = await app.inject({
+        method: 'POST',
+        url: '/restaurants/r1/tables/table-2/free'
+      });
+      expect(unauthorized.statusCode).toBe(401);
+      const login = await app.inject({
+        method: 'POST',
+        url: '/auth/staff/login',
+        payload: { username: 'manager', password: 'correct horse battery staple' }
+      });
+      expect(login.statusCode).toBe(200);
+      const cookie = login.headers['set-cookie'];
+      expect(cookie).toBeTruthy();
+      const authorized = await app.inject({
+        method: 'POST',
+        url: '/restaurants/r1/tables/table-2/free',
+        headers: { cookie: Array.isArray(cookie) ? cookie[0] : cookie }
+      });
+      expect(authorized.statusCode).toBe(200);
+    } finally {
+      if (previous.username === undefined) delete process.env.STAFF_USERNAME;
+      else process.env.STAFF_USERNAME = previous.username;
+      if (previous.password === undefined) delete process.env.STAFF_PASSWORD;
+      else process.env.STAFF_PASSWORD = previous.password;
+      if (previous.secret === undefined) delete process.env.STAFF_SESSION_SECRET;
+      else process.env.STAFF_SESSION_SECRET = previous.secret;
+    }
   });
 
   it('proxies text-to-speech audio without exposing the API key', async () => {
