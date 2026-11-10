@@ -140,6 +140,30 @@ terminal and Tailscale Funnel running if you want to present it publicly; set
 `LOWQUEUE_URL` to the public Funnel URL before running `npm run demo` to automate
 against the public address.
 
+### Demo staff login
+
+The presentation script uses these local-demo credentials:
+
+```text
+Username: manager
+Password: demo-password-123
+```
+
+The staff page is available at:
+
+```text
+http://127.0.0.1:3000/?restaurant=demo&view=staff
+```
+
+For a Tailscale presentation, replace the host with your Funnel URL:
+
+```text
+https://laptop-qkci6qp8.tail58af10.ts.net/?restaurant=demo&view=staff
+```
+
+These are demo credentials only. Change `STAFF_PASSWORD` and
+`STAFF_SESSION_SECRET` before exposing a non-demo deployment.
+
 The API and dashboard are served at:
 
 ```text
@@ -229,6 +253,14 @@ Configure `STAFF_USERNAME`, `STAFF_PASSWORD`, and `STAFF_SESSION_SECRET` to enab
 staff login sessions. Sessions are HttpOnly, signed, and expire after eight hours.
 `STAFF_API_KEY` remains available for service-to-service automation. If neither
 authentication mode is configured, local development keeps table actions open.
+
+Example presentation configuration:
+
+```powershell
+$env:STAFF_USERNAME = 'manager'
+$env:STAFF_PASSWORD = 'demo-password-123'
+$env:STAFF_SESSION_SECRET = 'local-demo-session-secret'
+```
 
 ## Voice APIs
 
