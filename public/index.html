@@ -3,65 +3,83 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>LowQueue</title>
+    <title>LowQueue — Waitlist</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <main class="shell">
-      <header class="hero">
-        <div>
-          <p class="eyebrow">LOWQUEUE / RESTAURANT FLOW</p>
-          <h1>Skip the line.<br /><span>Keep your place.</span></h1>
-          <p class="lede">Join a restaurant queue remotely and get notified when your table is ready.</p>
-        </div>
-        <div class="status-pill"><i></i> Service online</div>
-      </header>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <div class="brand">LOW<span>Q</span><sup>™</sup></div>
+        <nav>
+          <a class="active" href="#waitlist">☷ <span>Waitlist</span></a>
+          <a href="#customers">♙ <span>Customers</span></a>
+          <a href="#analytics">▥ <span>Analytics</span></a>
+        </nav>
+        <p class="nav-label">ADMIN</p>
+        <nav>
+          <a href="#locations">⌖ <span>Locations</span></a>
+          <a href="#business">▣ <span>Business</span></a>
+          <a href="#subscription">▤ <span>Subscription</span></a>
+          <a href="#staff">♙ <span>Staff users</span></a>
+        </nav>
+        <div class="sidebar-bottom"><span class="online-dot"></span> Service online</div>
+      </aside>
 
-      <section class="grid">
-        <article class="card join-card">
-          <div class="card-heading">
-            <div><p class="eyebrow">GUEST</p><h2>Join the queue</h2></div>
-            <span class="step">01</span>
-          </div>
-          <form id="join-form">
+      <main class="content" id="waitlist">
+        <header class="topbar">
+          <div class="restaurant-name"><span class="restaurant-icon">1<br>2<br>3</span><div><small>RESTAURANT 123</small><strong>Waitlist</strong></div></div>
+          <div class="top-actions"><span class="clock">◷ 14:32</span><button class="outline-button" id="open-staff">Staff view</button><button class="primary-button" id="add-top">＋ Add to waitlist</button></div>
+        </header>
+
+        <section class="guest-panel card" id="guest-panel">
+          <div class="section-title"><div><p class="eyebrow">GUEST CHECK-IN</p><h1>Join the waitlist</h1></div><button class="close-button" id="close-guest">×</button></div>
+          <form id="join-form" class="join-form">
             <label>Mobile number<input id="phone" type="tel" placeholder="+91 99999 11111" required /></label>
             <label>Party size<select id="party-size"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
-            <button type="submit">Get in line <span>→</span></button>
+            <button type="submit" class="primary-button">Add guest <span>→</span></button>
           </form>
           <p id="join-error" class="error" role="alert"></p>
-        </article>
+        </section>
 
-        <article class="card status-card">
-          <div class="card-heading">
-            <div><p class="eyebrow">YOUR TOKEN</p><h2 id="token-heading">No active token</h2></div>
-            <span class="token-mark">LQ</span>
-          </div>
-          <div id="empty-status" class="empty-state">Join the queue to see your live position here.</div>
-          <div id="active-status" class="hidden">
-            <div class="position"><strong id="position">—</strong><span>your position<br />in line</span></div>
-            <div class="progress"><div id="progress-bar"></div></div>
-            <p class="status-text">Status <strong id="token-status">WAITING</strong></p>
-            <div class="actions">
-              <button id="way-button" class="secondary">I'm on my way</button>
-              <button id="check-in-button" class="secondary">I'm here</button>
-              <button id="cancel-button" class="danger">Leave queue</button>
+        <section class="metrics">
+          <div class="metric card"><small>LAST CALLED</small><strong id="last-called">—</strong><span>guests today</span></div>
+          <div class="metric card"><small>WAITING NOW</small><strong id="waiting-count">0</strong><span>parties in line</span></div>
+          <div class="metric card highlight"><small>ESTIMATED WAIT</small><strong id="wait-estimate">0m</strong><span>based on current flow</span></div>
+          <div class="metric card"><small>TABLES AVAILABLE</small><strong id="tables-available">3</strong><span>ready to seat</span></div>
+        </section>
+
+        <section class="dashboard-grid">
+          <article class="card calling-card">
+            <div class="card-header"><div><p class="eyebrow">LIVE QUEUE</p><h2>Now calling</h2></div><span class="live-badge"><i></i> Live</span></div>
+            <div id="active-status" class="calling-empty">No guest is being called right now.</div>
+            <div id="empty-status" class="calling-empty">Add a guest to start the queue.</div>
+            <div id="guest-status" class="hidden">
+              <div class="called-number" id="position">—</div>
+              <div><strong id="token-heading">Guest</strong><p><span id="party-label">Party of —</span> · <span id="token-status">WAITING</span></p></div>
             </div>
-            <p id="status-error" class="error" role="alert"></p>
-          </div>
-        </article>
-      </section>
+            <div class="guest-actions">
+              <button id="way-button" class="soft-button">I'm on my way</button>
+              <button id="check-in-button" class="soft-button">I'm here</button>
+              <button id="cancel-button" class="danger-button">Remove</button>
+            </div>
+            <p id="status-error" class="error"></p>
+          </article>
 
-      <section class="card staff-card">
-        <div class="card-heading">
-          <div><p class="eyebrow">STAFF CONSOLE</p><h2>Table management</h2></div>
-          <span class="step">02</span>
-        </div>
-        <p class="muted">Free a table to assign it to the next checked-in guest.</p>
-        <div id="tables" class="tables"></div>
-      </section>
+          <article class="card floor-card">
+            <div class="card-header"><div><p class="eyebrow">RESTAURANT FLOOR</p><h2>Table availability</h2></div><span class="floor-legend"><i class="free"></i> Free <i class="busy"></i> Occupied</span></div>
+            <div class="floor-plan">
+              <div class="entrance">ENTRANCE</div><div class="bar">BAR</div><div class="table-shape t1">2</div><div class="table-shape t2">4</div><div class="table-shape t3">6</div><div class="table-shape t4">2</div><div class="table-shape t5">4</div><div class="table-shape t6">2</div><div class="table-shape t7">6</div><div class="table-shape t8">4</div>
+            </div>
+          </article>
+        </section>
 
-      <footer><span>LOWQUEUE</span><span>Fair queues, calmer teams.</span></footer>
-    </main>
+        <section class="card waitlist-card">
+          <div class="card-header"><div><p class="eyebrow">WAITLIST</p><h2>Guests in line</h2></div><button class="filter-button">Sort by <strong>Position</strong>⌄</button></div>
+          <div class="table-wrap"><table><thead><tr><th>NUMBER</th><th>GUEST</th><th>PARTY</th><th>STATUS</th><th>POSITION</th><th>ACTIONS</th></tr></thead><tbody id="guest-list"><tr><td colspan="6" class="empty-row">No guests waiting yet.</td></tr></tbody></table></div>
+        </section>
+        <footer><span>LOWQUEUE</span><span>Fair queues, calmer teams.</span></footer>
+      </main>
+    </div>
     <script type="module" src="/app.js"></script>
   </body>
 </html>

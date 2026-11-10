@@ -15,7 +15,7 @@ describe('queue API', () => {
     const response = await app.inject({ method: 'GET', url: '/' });
     expect(response.statusCode).toBe(200);
     expect(response.headers['content-type']).toContain('text/html');
-    expect(response.body).toContain('Join the queue');
+    expect(response.body).toContain('Join the waitlist');
   });
 
   it('creates a remote token and returns its position', async () => {
