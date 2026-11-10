@@ -1,0 +1,24 @@
+{
+  "name": "lowqueue",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "start": "node dist/src/server.js"
+  },
+  "devDependencies": {
+    "@types/node": "latest",
+    "@types/pg": "^8.23.1",
+    "typescript": "latest",
+    "vitest": "latest"
+  },
+  "dependencies": {
+    "@fastify/multipart": "^9.2.1",
+    "@fastify/static": "^8.2.0",
+    "fastify": "^5.12.8",
+    "pg": "^8.23.1"
+  }
+}

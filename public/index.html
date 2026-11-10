@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LowQueue</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="hero">
+        <div>
+          <p class="eyebrow">LOWQUEUE / RESTAURANT FLOW</p>
+          <h1>Skip the line.<br /><span>Keep your place.</span></h1>
+          <p class="lede">Join a restaurant queue remotely and get notified when your table is ready.</p>
+        </div>
+        <div class="status-pill"><i></i> Service online</div>
+      </header>
+
+      <section class="grid">
+        <article class="card join-card">
+          <div class="card-heading">
+            <div><p class="eyebrow">GUEST</p><h2>Join the queue</h2></div>
+            <span class="step">01</span>
+          </div>
+          <form id="join-form">
+            <label>Mobile number<input id="phone" type="tel" placeholder="+91 99999 11111" required /></label>
+            <label>Party size<select id="party-size"><option>1</option><option selected>2</option><option>3</option><option>4</option><option>5</option><option>6</option></select></label>
+            <button type="submit">Get in line <span>→</span></button>
+          </form>
+          <p id="join-error" class="error" role="alert"></p>
+        </article>
+
+        <article class="card status-card">
+          <div class="card-heading">
+            <div><p class="eyebrow">YOUR TOKEN</p><h2 id="token-heading">No active token</h2></div>
+            <span class="token-mark">LQ</span>
+          </div>
+          <div id="empty-status" class="empty-state">Join the queue to see your live position here.</div>
+          <div id="active-status" class="hidden">
+            <div class="position"><strong id="position">—</strong><span>your position<br />in line</span></div>
+            <div class="progress"><div id="progress-bar"></div></div>
+            <p class="status-text">Status <strong id="token-status">WAITING</strong></p>
+            <div class="actions">
+              <button id="way-button" class="secondary">I'm on my way</button>
+              <button id="check-in-button" class="secondary">I'm here</button>
+              <button id="cancel-button" class="danger">Leave queue</button>
+            </div>
+            <p id="status-error" class="error" role="alert"></p>
+          </div>
+        </article>
+      </section>
+
+      <section class="card staff-card">
+        <div class="card-heading">
+          <div><p class="eyebrow">STAFF CONSOLE</p><h2>Table management</h2></div>
+          <span class="step">02</span>
+        </div>
+        <p class="muted">Free a table to assign it to the next checked-in guest.</p>
+        <div id="tables" class="tables"></div>
+      </section>
+
+      <footer><span>LOWQUEUE</span><span>Fair queues, calmer teams.</span></footer>
+    </main>
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
