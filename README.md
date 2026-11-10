@@ -193,7 +193,18 @@ POST   /restaurants/{restaurantId}/tokens/{tokenId}/ready
 POST   /restaurants/{restaurantId}/tokens/{tokenId}/seated
 DELETE /restaurants/{restaurantId}/tokens/{tokenId}
 POST   /restaurants/{restaurantId}/tables/{tableId}/free
+GET    /restaurants/{restaurantId}/summary
+GET    /restaurants/{restaurantId}/analytics
+GET    /restaurants/{restaurantId}/events
+GET    /restaurants
+POST   /restaurants/{restaurantId}/config
+GET    /openapi.json
 ```
+
+Mutating requests accept an `Idempotency-Key` header. Reusing the same key for the
+same operation returns the original result instead of applying the event twice.
+Queue changes are also published as Server-Sent Events on the restaurant events
+route, which the dashboard subscribes to for live updates.
 
 ## Voice APIs
 
@@ -227,6 +238,9 @@ When `STAFF_API_KEY` is configured, table-management requests must include:
 ```text
 x-staff-api-key: staff-secret
 ```
+
+The API emits structured JSON request logs through Fastify. The OpenAPI document is
+available at `/openapi.json` for import into Swagger UI or other API tooling.
 
 Use a secret manager or deployment environment for production credentials. Do not
 paste active API keys into source files, README files, tests, or commits.

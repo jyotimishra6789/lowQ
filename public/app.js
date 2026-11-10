@@ -1,4 +1,4 @@
-const restaurantId = 'demo';
+const restaurantId = new URLSearchParams(location.search).get('restaurant') || 'demo';
 let tokenId = localStorage.getItem('lowqueue-token');
 const $ = (id) => document.getElementById(id);
 const request = async (url, options = {}) => {
@@ -27,6 +27,16 @@ function showToken(data) {
     <td>${data.position ?? '—'}</td><td><button class="row-action" data-action="check">Manage</button></td>
   </tr>`;
   $('guest-list').querySelector('[data-action="check"]').addEventListener('click', () => $('guest-panel').classList.add('visible'));
+}
+async function refreshSummary() {
+  try {
+    const summary = await request(`/restaurants/${restaurantId}/summary`);
+    $('waiting-count').textContent = summary.waiting;
+    $('wait-estimate').textContent = `${summary.averageWaitMinutes}m`;
+    $('tables-available').textContent = summary.tables.filter((table) => table.status === 'FREE').length;
+    const tableStatus = new Map(summary.tables.map((table) => [table.id, table.status]));
+    document.querySelectorAll('[data-table]').forEach((table) => table.classList.toggle('occupied', tableStatus.get(table.dataset.table) === 'OCCUPIED'));
+  } catch (error) { $('status-error').textContent = error.message; }
 }
 
 async function refresh() {
@@ -71,4 +81,7 @@ $('cancel-button').addEventListener('click', async () => {
 });
 
 refresh();
-setInterval(refresh, 5000);
+refreshSummary();
+setInterval(() => { refresh(); refreshSummary(); }, 5000);
+const events = new EventSource(`/restaurants/${restaurantId}/events`);
+events.addEventListener('queue', () => { refresh(); refreshSummary(); });

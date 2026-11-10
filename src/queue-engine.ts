@@ -116,6 +116,11 @@ export function reduce(
     case 'TABLE_READY_ACK': {
       const token = requireToken(state, event.tokenId);
       requireStatus(token, ['CHECKED_IN']);
+      if (!token.tableId) throw new Error('Token has no assigned table');
+      const assignedTable = state.tables.find((table) => table.id === token.tableId);
+      if (!assignedTable || assignedTable.status !== 'OCCUPIED') {
+        throw new Error('Assigned table is not occupied');
+      }
       token.status = 'CALLED';
       token.graceDeadline = event.at + graceWindowMs;
       effects.push({ type: 'NOTIFY', tokenId: token.id, message: 'Table ready' });
@@ -148,25 +153,26 @@ export function reduce(
       break;
     }
 
-    function releaseAssignedTable(
-      state: QueueState,
-      token: Token,
-      effects: QueueEffect[],
-      bypassLimit: number,
-      at: number
-    ): void {
-      if (!token.tableId) return;
-      const table = state.tables.find((candidate) => candidate.id === token.tableId);
-      delete token.tableId;
-      delete token.graceDeadline;
-      if (!table) return;
-      table.status = 'FREE';
-      effects.push({ type: 'TOKEN_UPDATED', tokenId: token.id });
-      assignFirstEligibleToken(state, table, effects, bypassLimit, at);
-    }
   }
 
   return { state, effects };
+}
+
+function releaseAssignedTable(
+  state: QueueState,
+  token: Token,
+  effects: QueueEffect[],
+  bypassLimit: number,
+  at: number
+): void {
+  if (!token.tableId) return;
+  const table = state.tables.find((candidate) => candidate.id === token.tableId);
+  delete token.tableId;
+  delete token.graceDeadline;
+  if (!table) return;
+  table.status = 'FREE';
+  effects.push({ type: 'TOKEN_UPDATED', tokenId: token.id });
+  assignFirstEligibleToken(state, table, effects, bypassLimit, at);
 }
 
 function assignFirstEligibleToken(

@@ -78,6 +78,41 @@ describe('queue API', () => {
         expect((await app.inject({ method: 'POST', url: '/restaurants/r1/tokens', payload })).statusCode).toBe(201);
         expect((await app.inject({ method: 'POST', url: '/restaurants/r1/tokens', payload })).statusCode).toBe(409);
     });
+    it('returns the same token for a repeated idempotency key', async () => {
+        app = createApp();
+        const headers = { 'idempotency-key': 'join-request-1' };
+        const first = await app.inject({
+            method: 'POST',
+            url: '/restaurants/r1/tokens',
+            headers,
+            payload: { phone: '+91 99999 44444', partySize: 2 }
+        });
+        const second = await app.inject({
+            method: 'POST',
+            url: '/restaurants/r1/tokens',
+            headers,
+            payload: { phone: '+91 99999 44444', partySize: 2 }
+        });
+        expect(second.statusCode).toBe(201);
+        expect(second.json()).toEqual(first.json());
+    });
+    it('exposes queue summary and rejects table-ready without assignment', async () => {
+        app = createApp(new InMemoryQueueRepository([
+            { id: 'table-2', capacity: 2, status: 'FREE' }
+        ]));
+        const created = await app.inject({
+            method: 'POST',
+            url: '/restaurants/r1/tokens',
+            payload: { phone: '+91 99999 55555', partySize: 2 }
+        });
+        const tokenId = created.json().token.id;
+        await app.inject({ method: 'POST', url: `/restaurants/r1/tokens/${tokenId}/check-in` });
+        const ready = await app.inject({ method: 'POST', url: `/restaurants/r1/tokens/${tokenId}/ready` });
+        expect(ready.statusCode).toBe(409);
+        const summary = await app.inject({ method: 'GET', url: '/restaurants/r1/summary' });
+        expect(summary.statusCode).toBe(200);
+        expect(summary.json().waiting).toBe(1);
+    });
     it('proxies text-to-speech audio without exposing the API key', async () => {
         const gnani = new GnaniClient('test-key', async (input, init) => {
             expect(input).toBe('https://api.vachana.ai/api/v1/tts/inference');

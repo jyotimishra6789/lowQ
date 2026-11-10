@@ -105,4 +105,12 @@ describe('queue engine', () => {
     state = apply(state, { id: 'free-a', type: 'TABLE_FREE', at: 3, tableId: 't2' });
     expect(() => reduce(state, { id: 'free-b', type: 'TABLE_FREE', at: 4, tableId: 't2' })).toThrow('already occupied');
   });
+
+  it('requires an assigned occupied table before calling a guest', () => {
+    let state = createQueueState([{ id: 't2', capacity: 2, status: 'FREE' }]);
+    state = apply(state, join('A', 'phone-a', 2, 1));
+    state = apply(state, { id: 'check-a', type: 'CHECK_IN', at: 2, tokenId: 'A' });
+    expect(() => reduce(state, { id: 'ready-a', type: 'TABLE_READY_ACK', at: 3, tokenId: 'A' }))
+      .toThrow('assigned table');
+  });
 });

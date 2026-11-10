@@ -49,6 +49,39 @@ export class PostgresEventStore {
         finally {
             client.release();
         }
+        async;
+        getRestaurantConfig(restaurantId, string);
+        Promise < PersistedRestaurantConfig | undefined > {
+            const: result = await this.pool.query('SELECT name, config FROM restaurants WHERE id = $1', [restaurantId]),
+            const: row = result.rows[0],
+            if(, row) { }, return: undefined,
+            return: {
+                name: typeof row.config?.name === 'string' ? row.config.name : row.name,
+                averageTableTurnMinutes: typeof row.config?.averageTableTurnMinutes === 'number'
+                    ? row.config.averageTableTurnMinutes
+                    : 15
+            },
+        };
+        async;
+        saveRestaurantConfig(restaurantId, string, config, PersistedRestaurantConfig);
+        Promise < void  > {
+            await: this.pool.query(`INSERT INTO restaurants (id, name, config)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name, config = EXCLUDED.config`, [restaurantId, config.name, config]),
+        };
+        async;
+        getIdempotency(restaurantId, string, operationKey, string);
+        Promise < unknown | undefined > {
+            const: result = await this.pool.query('SELECT response FROM idempotency_keys WHERE restaurant_id = $1 AND operation_key = $2', [restaurantId, operationKey]),
+            return: result.rows[0]?.response,
+        };
+        async;
+        saveIdempotency(restaurantId, string, operationKey, string, response, unknown);
+        Promise < void  > {
+            await: this.pool.query(`INSERT INTO idempotency_keys (restaurant_id, operation_key, response)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (restaurant_id, operation_key) DO NOTHING`, [restaurantId, operationKey, response]),
+        };
     }
     async ensureRestaurant(client, restaurantId) {
         await client.query(`INSERT INTO restaurants (id, name)

@@ -50,6 +50,12 @@ export function reduce(currentState, event, bypassLimit = 2, graceWindowMs = 5 *
         case 'TABLE_READY_ACK': {
             const token = requireToken(state, event.tokenId);
             requireStatus(token, ['CHECKED_IN']);
+            if (!token.tableId)
+                throw new Error('Token has no assigned table');
+            const assignedTable = state.tables.find((table) => table.id === token.tableId);
+            if (!assignedTable || assignedTable.status !== 'OCCUPIED') {
+                throw new Error('Assigned table is not occupied');
+            }
             token.status = 'CALLED';
             token.graceDeadline = event.at + graceWindowMs;
             effects.push({ type: 'NOTIFY', tokenId: token.id, message: 'Table ready' });
@@ -73,30 +79,29 @@ export function reduce(currentState, event, bypassLimit = 2, graceWindowMs = 5 *
             effects.push({ type: 'TOKEN_UPDATED', tokenId: token.id });
             break;
         }
-        case 'CANCEL':
-            {
-                const token = requireToken(state, event.tokenId);
-                if (!isActive(token.status))
-                    throw new Error('Token is already closed');
-                token.status = 'CANCELLED';
-                releaseAssignedTable(state, token, effects, bypassLimit, event.at);
-                effects.push({ type: 'TOKEN_UPDATED', tokenId: token.id });
-                break;
-            }
-            function releaseAssignedTable(state, token, effects, bypassLimit, at) {
-                if (!token.tableId)
-                    return;
-                const table = state.tables.find((candidate) => candidate.id === token.tableId);
-                delete token.tableId;
-                delete token.graceDeadline;
-                if (!table)
-                    return;
-                table.status = 'FREE';
-                effects.push({ type: 'TOKEN_UPDATED', tokenId: token.id });
-                assignFirstEligibleToken(state, table, effects, bypassLimit, at);
-            }
+        case 'CANCEL': {
+            const token = requireToken(state, event.tokenId);
+            if (!isActive(token.status))
+                throw new Error('Token is already closed');
+            token.status = 'CANCELLED';
+            releaseAssignedTable(state, token, effects, bypassLimit, event.at);
+            effects.push({ type: 'TOKEN_UPDATED', tokenId: token.id });
+            break;
+        }
     }
     return { state, effects };
+}
+function releaseAssignedTable(state, token, effects, bypassLimit, at) {
+    if (!token.tableId)
+        return;
+    const table = state.tables.find((candidate) => candidate.id === token.tableId);
+    delete token.tableId;
+    delete token.graceDeadline;
+    if (!table)
+        return;
+    table.status = 'FREE';
+    effects.push({ type: 'TOKEN_UPDATED', tokenId: token.id });
+    assignFirstEligibleToken(state, table, effects, bypassLimit, at);
 }
 function assignFirstEligibleToken(state, table, effects, bypassLimit, at) {
     const candidates = state.tokens
