@@ -1,5 +1,5 @@
 # LowQueue
-
+#offcampus HG5C5Y
 LowQueue is a restaurant waiting-list and table-allocation system. Guests can join
 remotely, share their party size, announce that they are travelling or have arrived,
 and follow their position without standing in a crowded physical line. Restaurant
